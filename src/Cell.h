@@ -22,6 +22,7 @@ public:
 	bool contains(ofVec3f);
 
 	void setOccupied(int);
-	int Cell::getOccupied();
+	int getOccupied();
+	float getArea() { return (L*W); }
 };
 

@@ -32,6 +32,9 @@ bool Cell::contains(ofVec3f p) {
 			t = true;
 		}
 	}
+	if(p.x==X && p.y==Y){
+		t = true;
+	}
 	return t;
 }
 

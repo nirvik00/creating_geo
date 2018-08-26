@@ -9,26 +9,27 @@ class Agent
 {
 public:
 	vector<Cell> allCells;
-	vector<Cell> cellOccupied;
-	float cellL, cellW;
+	vector<Cell> cellsOccupied;
+	float cellL, cellW, AREA;
 	ofVec3f POS;
 	Cell inCell;
+	int SUCCESS=0;
 
 	Agent(){}
 
 	Agent(float, float, Cell, vector<Cell>);
-
-	void addAllCells(vector<Cell>);
-
 	void clear();
+	void addAllCells(vector<Cell>);
+	void setArea(float);
+	
 	Cell getInCell();
 	void setInCell(Cell);
 
-	void move();
-
-	void dontRepeat(Cell);
-
+	void initMove();
+	int move(int);
+	void dontRepeat(Cell, int);
 	Cell getCell(ofVec3f);
+	float totalAreaOccupied();
 
 };
 

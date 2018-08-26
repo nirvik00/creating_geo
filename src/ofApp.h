@@ -40,11 +40,13 @@ public:
 	/**/
 	float prevL, prevW;
 	float gridLength, gridWidth;
+	int indX, indY;
+	string MSG="";
 
 	float agentArea;
 
 	vector<ofVec3f> grid;
-	vector<Cell> cells;
+	vector<Cell> CELLS;
 	vector<Cell> occupiedCells;
 
 	Agent agent;

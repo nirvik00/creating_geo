@@ -5,7 +5,7 @@ Agent::Agent(float dx, float dy, Cell cell, vector<Cell> cells)
 {
 	cellL = dx; cellW = dy; inCell = cell; allCells = cells;
 	POS = cell.cellMP();
-	cellOccupied.push_back(inCell);
+	cellsOccupied.push_back(inCell);
 	cell.setOccupied(0);
 }
 
@@ -13,9 +13,25 @@ void Agent::addAllCells(vector<Cell> c) {
 	allCells = c;
 }
 
+void Agent::setArea(float a) {
+	AREA = a;
+}
+
 void Agent::clear() {
-	allCells.clear();
-	cellOccupied.clear();
+	try{ 
+		allCells.clear(); 
+	}
+	catch (exception e) {
+		cout << "error in vector clearing 1" << endl;
+		//blank vector
+	}
+	try {
+		cellsOccupied.clear();
+	}
+	catch (exception e) {
+		cout << "error in vector clearing 2" << endl;
+		//blank vector
+	}
 }
 
 Cell Agent::getInCell() { return inCell; }
@@ -24,15 +40,56 @@ void Agent::setInCell(Cell G) {
 	cellL = G.L; cellW = G.W;
 	POS = G.cellMP();
 	inCell = G; 
-	cellOccupied.push_back(G); 
-	for (int i = 0; i < cellOccupied.size(); i++) {
-		cellOccupied[i].setOccupied(1);
-		cout << "(Agent)these cells are occupied : " << cellOccupied[i].cellId << endl;
-	}
+	cellsOccupied.push_back(G); 
 }
 
-void Agent::move() {
-	cout << "(Agent) moving from cell: " << inCell.cellId << endl;
+
+void Agent::initMove() {
+	float sum = totalAreaOccupied();
+	int brkRec = 10000;
+	int itr = 0;	
+	if (sum >= AREA) {
+		SUCCESS = 1;
+	}
+	cout << "initiating MOVE..." << sum << ", " << AREA << endl;
+	if (sum < AREA) {
+		int t=move(0);
+		sum = totalAreaOccupied();
+		if (t == 0) {
+			cout << "(BREAK) id 0 was returned" << endl;
+			SUCCESS = 0;
+		}
+		if (itr > brkRec) {
+			cout << "(BREAK) iteration limit reached" << endl;
+			SUCCESS = 0;
+		}			
+		if (sum >= AREA) {
+			cout << "(BREAK) area limit reached" << endl;
+			SUCCESS = 1;
+		}		
+		cout  << itr << "(ITERATE) sum is now : " << sum << ", " << AREA << endl;
+		itr++;
+	}
+	cout << "\n\n\n SUCCESS: " << SUCCESS << endl;
+	if (SUCCESS == 0) {
+		clear();
+		initMove();
+	}
+}
+float Agent::totalAreaOccupied() {
+	float sumx = 0;
+	if (cellsOccupied.size() < 1) {
+		cout << "return 0 from sum " << endl;
+		return sumx;
+	}
+	for (unsigned int i = 0; i < cellsOccupied.size(); i++) {
+		sumx += cellsOccupied[i].getArea();
+	}
+	cout << "return sumx from sum " << sumx << endl;
+	return sumx;
+}
+
+int Agent::move(int rec) {
 	Cell E = allCells[0];
 	int x = (int)ofRandom(0, 4);
 	ofVec3f pos = POS;
@@ -53,17 +110,20 @@ void Agent::move() {
 		pos = { pos.x, pos.y + cellW, 0 };
 	}
 	E= getCell(pos);
-	dontRepeat(E);
+	if (rec < allCells.size()) {
+		rec++;
+		dontRepeat(E, rec);
+	}
+	if (E.cellId == 0) { return 0; }
+	else { return 1; }
 }
 
-void Agent::dontRepeat(Cell F) {
-	if (F.cellId == 0) {
-		cout << "(Agent)repeat avoided at cell id: " << inCell.cellId << endl;
-		move();
-	}
-	else {
-		setInCell(F);
-	}
+void Agent::dontRepeat(Cell F, int rec) {
+	if (F.cellId != 0 && rec < 100) { setInCell(F); }
+	
+	if ((totalAreaOccupied() - AREA)<0) { move(rec); }
+	else { SUCCESS = 1; }
+	
 }
 
 Cell Agent::getCell(ofVec3f p) {
@@ -74,8 +134,8 @@ Cell Agent::getCell(ofVec3f p) {
 		bool t = got.contains(p);
 		if (t == true) {
 			int sum = 0;
-			for (int j = 0; j < cellOccupied.size(); j++) {
-				if (cellOccupied[j].cellId == got.cellId) {
+			for (int j = 0; j < cellsOccupied.size(); j++) {
+				if (cellsOccupied[j].cellId == got.cellId) {
 					sum++;
 				}
 			}

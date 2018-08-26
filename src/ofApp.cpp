@@ -1,28 +1,51 @@
 #include "ofApp.h"
 
 void ofApp::init() {
+
+	cout << "\n\n\n";
 	agent.clear();
-	int t = (int)ofRandom(0, grid.size() - 1);
-	agent.setInCell(cells[t]);
-	agent.addAllCells(cells);
+	int t = 0;
+	ofVec3f p((ofGetWidth() / 2), (ofGetHeight() / 2));
+	for (int i = 0; i < CELLS.size(); i++) {
+		if (CELLS[i].contains(p)) {
+			t = i; break;
+		}
+	}
+	agent.setInCell(CELLS[t]);
+	agent.addAllCells(CELLS);
+	agent.setArea(gui->agentArea);
+	agent.initMove();
+
+	float sum = 0; 
+	for (int i = 0; i < agent.cellsOccupied.size(); i++) {
+		Cell cell = agent.cellsOccupied[i];
+		sum += cell.getArea();
+	}
+	cout << "\n\n(end of run) total=" << sum << endl;
 }
 
 
 void ofApp::moveAgent() {
-	agent.move();
+	agent.move(0);
+	
 }
 
 void ofApp::resetGrids() {
-	gridLength = gui->gridLength; gridWidth = gui->gridWidth; agentArea = gui->agentArea;
+	gridLength = gui->gridLength; 
+	gridWidth = gui->gridWidth; 
+	agentArea = gui->agentArea;
+
 	prevL = gridLength; prevW = gridWidth;
-	grid.clear(); cells.clear(); int k = 0; int posx = 0; int posy = 0;
+	
+	grid.clear(); CELLS.clear(); int k = 0; int indX = 0;
 	for (unsigned int i = 0; i < ofGetWidth(); i += gridLength) {
+		int indY = 0;
 		for (unsigned int j = 0; j < ofGetWidth(); j += gridWidth) {
 			grid.push_back(ofVec3f(i, j, 0));
-			cells.push_back(Cell(k, i, j, gridLength, gridWidth, posx, posy));
-			posy++; k++;
+			CELLS.push_back(Cell(k, i, j, gridLength, gridWidth, indX, indY));
+			indY++; k++;
 		}
-		posx++;
+		indX++;
 	}
 	agent.clear();
 }
@@ -32,15 +55,9 @@ void ofApp::setup(){
 	gridWidth = 50;
 	prevL = gridLength;
 	prevW = gridWidth;
-	int k = 0;; int posx=0; int posy=0;
-	for (unsigned int i = 0; i < ofGetWidth(); i+=gridLength) {
-		for (unsigned int j = 0; j < ofGetWidth(); j+=gridWidth) {
-			grid.push_back(ofVec3f(i, j, 0));
-			cells.push_back(Cell(k, i, j, gridLength, gridWidth, posx, posy));
-			posy++; k++;
-		}
-		posx++;
-	}
+	indX = 0;
+	indY = 0;
+	resetGrids();
 }
 
 void ofApp::update(){
@@ -48,6 +65,17 @@ void ofApp::update(){
 	if (prevL != gridLength || prevW != gridWidth) {
 		resetGrids();
 	}
+
+	float sum = 0;
+	string S = "...";
+	for (int i = 0; i < agent.cellsOccupied.size(); i++) {
+		Cell cell = agent.cellsOccupied[i];
+		//S += ","+to_string(cell.getArea());
+		sum += cell.getArea();
+	}
+	MSG = "Required area of cells = " + to_string(gui->agentArea);
+	MSG += "\nAchieved Area of cells = " + to_string(sum) + S;
+	
 }
 
 void ofApp::draw(){
@@ -55,13 +83,16 @@ void ofApp::draw(){
 	for (unsigned int i = 0; i < grid.size(); i++) {
 		ofDrawCircle(grid[i], 1);
 	}
-	for (unsigned int i = 0; i < cells.size(); i++) {
-		cells[i].draw();
+	for (unsigned int i = 0; i < CELLS.size(); i++) {
+		CELLS[i].draw();
 	}
 	
-	for (unsigned int i = 0; i < agent.cellOccupied.size(); i++) {
-		agent.cellOccupied[i].display();
+	for (unsigned int i = 0; i < agent.cellsOccupied.size(); i++) {
+		agent.cellsOccupied[i].display();
 	}
+
+	ofSetColor(0); ofFill();
+	ofDrawBitmapStringHighlight(MSG, 10, ofGetHeight() - 50);
 }
 
 void ofApp::keyPressed(int key){
