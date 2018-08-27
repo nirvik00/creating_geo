@@ -3,8 +3,10 @@
 #include "ofMain.h"
 #include "GuiApp.h"
 
+#include <algorithm>
 #include <vector>
-
+#include <ctime>
+#include <cstdlib>
 
 #include "Cell.h"
 #include "Agent.h"
@@ -13,7 +15,6 @@
 
 class ofApp : public ofBaseApp 
 {
-
 public:
 	void setup();
 	void update();

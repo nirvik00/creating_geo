@@ -40,14 +40,14 @@ void Agent::setInCell(Cell G) {
 	sysCellsOccupied.push_back(G);
 }
 
-void Agent::initMove() {
+void Agent::initMove(int recNum) {
 	float sum = totalAreaOccupied();
 	int brkRec = 10000;
 	int itr = 0;	
 	if (sum >= AREA) {
 		SUCCESS = 1;
 	}
-	cout << "\ninitiating MOVE..." << sum << ", " << AREA << endl;
+	//cout << "\ninitiating MOVE..." << sum << ", " << AREA << endl;
 	if (sum < AREA) {
 		cout << sum << endl;
 		int t=move(0);
@@ -59,10 +59,11 @@ void Agent::initMove() {
 		
 		itr++;
 	}
-	cout << "SUCCESS: " << SUCCESS << endl;
-	if (SUCCESS == 0) {
+	//cout << "SUCCESS: " << SUCCESS << endl;
+	if (SUCCESS == 0 && recNum<100) {
+		recNum++;
 		clear();
-		initMove();
+		initMove(recNum);
 	}
 }
 
@@ -83,7 +84,7 @@ int Agent::move(int rec) {
 	* if the cell is free - success
 	* else repeat move
 	*/
-	cout << "moving : " << rec << "; " << totalAreaOccupied() << endl;
+	//cout << "moving : " << rec << "; " << totalAreaOccupied() << endl;
 	Cell E = allCells[0];
 	int x = (int)ofRandom(0, 4);
 	ofVec3f pos = POS;

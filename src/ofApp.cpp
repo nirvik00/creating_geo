@@ -40,6 +40,7 @@ void ofApp::init() {
 }
 
 int ofApp::findAppropriateCellIndex() {
+	cout << "\n\n\n";
 	cout << "level 1 start;" << endl;
 	cout << "all cells size: "  << CELLS.size() << endl;
 	cout << "occupied cells size: " << procOccupiedCells.size() << endl;
@@ -50,41 +51,42 @@ int ofApp::findAppropriateCellIndex() {
 	*** if this min distance >50 & <100 
 	***** return cell index
 	*/
-	int TR = -1;
-	vector<Cell> xCell;
+	vector<Cell> xCells;
 	for (int i = 0; i < CELLS.size(); i++) {
-		TR = CELLS[i].cellId;
+		int t = CELLS[i].cellId;
 		int sumx = 0;
 		for (int j = 0; j < procOccupiedCells.size(); j++) {
 			int e = procOccupiedCells[j].cellId;
-			if (TR == e) { sumx++; }
+			if (t == e) { sumx++; }
 		}
-		if (sumx == 0 && procOccupiedCells.size()>0) {
-			xCell.push_back(CELLS[i]);
+		if (sumx == 0) {
+			xCells.push_back(CELLS[i]); //cells not occupied
 		}
 	}
-	
-	/*
-	* in case the process fails: take a random point from outside occupied cells
-	* from all cells, select a random cell index
-	* if it is not in occupied cells
-	* return cell index
-	*/
-	cout << "level 1 complete; t= " << TR << endl;
-	if (TR == -1) {
-		for (int i = 0; i < CELLS.size(); i++) {
-			TR = ofRandom(0, CELLS.size());
-			int sumx = 0;
+	vector<Cell> yCells;
+	if (procOccupiedCells.size() > 0) {
+		for (int i = 0; i < xCells.size(); i++) {
 			for (int j = 0; j < procOccupiedCells.size(); j++) {
-				int e = procOccupiedCells[j].cellId;
-				if (TR == e) { sumx++; }
+				float d = xCells[i].di(procOccupiedCells[j]);
+				if (d < gridLength*1.5 || d < gridWidth*1.5) {
+					yCells.push_back(xCells[i]);
+				}
 			}
-			if (sumx == 0) { break; }
 		}
 	}
-
-	cout << "finally t= " << TR << endl;
-	return TR;
+	cout << "size of x cells : " << xCells.size() << endl;
+	cout << "size of y cells : " << yCells.size() << endl;
+	int TRY = -1;
+	if (yCells.size() > 0) {
+		random_shuffle(yCells.begin(), yCells.end());
+		TRY = yCells[0].cellId;
+	}
+	else {
+		random_shuffle(xCells.begin(), xCells.end());
+		TRY = xCells[0].cellId;
+	}
+	cout << "finally initial starting cell id= " << TRY << endl;
+	return TRY;
 }
 
 Agent ofApp::agentProc(Agent agent, int iter) {
@@ -98,7 +100,7 @@ Agent ofApp::agentProc(Agent agent, int iter) {
 	agent.addAllCells(CELLS);
 	agent.addAllSysCells(procOccupiedCells);
 	agent.setArea(agentAreaArr[iter]);
-	agent.initMove();
+	agent.initMove(0);
 
 	float sum = 0; 
 	for (int i = 0; i < agent.cellsOccupied.size(); i++) {
@@ -146,6 +148,7 @@ void ofApp::resetSystem() {
 }
 
 void ofApp::setup(){
+	srand(unsigned(std::time(0)));
 	gridLength = 50;
 	gridWidth = 50;
 	prevL = gridLength;
@@ -174,15 +177,12 @@ void ofApp::draw(){
 			Cell cell = agentVec[i].cellsOccupied[j];			
 			cell.display(COLOR[i]);
 			ofSetColor(0);
-			ofDrawBitmapString(i, cell.X + 25, cell.Y + cell.W / 3);
+			//string s = to_string(cell.cellId) + ", " + to_string(i);
+			string s = to_string(i);
+			ofDrawBitmapString(s, cell.X + 5, cell.Y + cell.W / 3);
 		}
 	}
 	/*
-	for (int i = 0; i < procOccupiedCells.size(); i++) {
-		Cell cell = procOccupiedCells[i];
-		ofSetColor(0);
-		ofDrawBitmapString(i, cell.X + 5, cell.Y + cell.W / 3);
-	}
 	ofDrawBitmapStringHighlight(MSG, 10, ofGetHeight() - 50);
 	*/
 }

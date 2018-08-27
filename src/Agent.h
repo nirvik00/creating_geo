@@ -28,7 +28,7 @@ public:
 	Cell getInCell();
 	void setInCell(Cell);
 
-	void initMove();
+	void initMove(int);
 	int move(int);
 	void dontRepeat(Cell, int);
 	Cell getCell(ofVec3f);
