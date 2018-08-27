@@ -9,17 +9,20 @@ class Agent
 {
 public:
 	vector<Cell> allCells;
+	vector<Cell> sysCellsOccupied;
 	vector<Cell> cellsOccupied;
 	float cellL, cellW, AREA;
 	ofVec3f POS;
 	Cell inCell;
 	int SUCCESS=0;
+	int maxRecMove = 1000;
+
 
 	Agent(){}
 
-	Agent(float, float, Cell, vector<Cell>);
 	void clear();
 	void addAllCells(vector<Cell>);
+	void addAllSysCells(vector<Cell>);
 	void setArea(float);
 	
 	Cell getInCell();

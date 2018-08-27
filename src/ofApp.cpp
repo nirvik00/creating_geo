@@ -1,19 +1,103 @@
 #include "ofApp.h"
 
-void ofApp::init() {
+ofColor ofApp::colorScheme(int i) {
+	if (i == 0) { return ofColor(255, 0, 0, 150); }
+	else if (i == 1) { return ofColor(255, 100, 0, 150); }
+	else if (i == 2) { return ofColor(100, 200, 50, 150); }
+	else if (i == 3) { return ofColor(50, 150, 200, 150); }
+	else { return ofColor(100, 100, 250, 150); }
+}
 
+void ofApp::colorScheme() {
+	COLOR[0] = gui->color0;
+	COLOR[1] = gui->color1;
+	COLOR[2] = gui->color2;
+	COLOR[3] = gui->color3;
+	COLOR[4] = gui->color4;
+}
+
+void ofApp::init() {
+	/*
+	* starting point for a generation
+	*/
+	resetSystem();
 	cout << "\n\n\n";
-	agent.clear();
-	int t = 0;
-	ofVec3f p((ofGetWidth() / 2), (ofGetHeight() / 2));
+	procOccupiedCells.clear();
+	
+	/*
+	* 1. Create the agents and send them to process for cellular occupation
+	* 2. Occupied cells will be updated in the system
+	*/
+
+	for (unsigned int i = 0; i < 5; i++) {
+		Agent agent = agentProc(agent, i);
+		agentVec.push_back(agent);
+		for (unsigned int j = 0; j < agent.cellsOccupied.size(); j++) {
+			Cell cell = agent.cellsOccupied[j];
+			procOccupiedCells.push_back(cell);
+		}
+	}	
+}
+
+int ofApp::findAppropriateCellIndex() {
+	cout << "level 1 start;" << endl;
+	cout << "all cells size: "  << CELLS.size() << endl;
+	cout << "occupied cells size: " << procOccupiedCells.size() << endl;
+	/*
+	* from all cells, select a random cell index
+	* if it is not in occupied cells
+	*** check for min distance to all occupied cells
+	*** if this min distance >50 & <100 
+	***** return cell index
+	*/
+	int TR = -1;
+	vector<Cell> xCell;
 	for (int i = 0; i < CELLS.size(); i++) {
-		if (CELLS[i].contains(p)) {
-			t = i; break;
+		TR = CELLS[i].cellId;
+		int sumx = 0;
+		for (int j = 0; j < procOccupiedCells.size(); j++) {
+			int e = procOccupiedCells[j].cellId;
+			if (TR == e) { sumx++; }
+		}
+		if (sumx == 0 && procOccupiedCells.size()>0) {
+			xCell.push_back(CELLS[i]);
 		}
 	}
+	
+	/*
+	* in case the process fails: take a random point from outside occupied cells
+	* from all cells, select a random cell index
+	* if it is not in occupied cells
+	* return cell index
+	*/
+	cout << "level 1 complete; t= " << TR << endl;
+	if (TR == -1) {
+		for (int i = 0; i < CELLS.size(); i++) {
+			TR = ofRandom(0, CELLS.size());
+			int sumx = 0;
+			for (int j = 0; j < procOccupiedCells.size(); j++) {
+				int e = procOccupiedCells[j].cellId;
+				if (TR == e) { sumx++; }
+			}
+			if (sumx == 0) { break; }
+		}
+	}
+
+	cout << "finally t= " << TR << endl;
+	return TR;
+}
+
+Agent ofApp::agentProc(Agent agent, int iter) {
+	/*
+	* starting point - findAppropriateCell()
+	* update all values of the agent: ensure initialization is correct
+	*/
+	agent.clear();
+	int t = findAppropriateCellIndex();
 	agent.setInCell(CELLS[t]);
 	agent.addAllCells(CELLS);
-	agent.setArea(gui->agentArea);
+	agent.addAllSysCells(procOccupiedCells);
+	agent.setArea(agentAreaArr[iter]);
 	agent.initMove();
 
 	float sum = 0; 
@@ -21,23 +105,30 @@ void ofApp::init() {
 		Cell cell = agent.cellsOccupied[i];
 		sum += cell.getArea();
 	}
-	cout << "\n\n(end of run) total=" << sum << endl;
+	cout << iter << "(end of run) total=" << sum << endl;
+	return agent;
 }
 
-
-void ofApp::moveAgent() {
-	agent.move(0);
-	
-}
-
-void ofApp::resetGrids() {
+void ofApp::resetSystem() {
 	gridLength = gui->gridLength; 
 	gridWidth = gui->gridWidth; 
-	agentArea = gui->agentArea;
+
+	agentAreaArr[0] = gui->agentArea1;
+	agentAreaArr[1] = gui->agentArea2;
+	agentAreaArr[2] = gui->agentArea3;
+	agentAreaArr[3] = gui->agentArea4;
+	agentAreaArr[4] = gui->agentArea5;
 
 	prevL = gridLength; prevW = gridWidth;
 	
+	COLOR[0] = gui->color0;
+	COLOR[1] = gui->color1;
+	COLOR[2] = gui->color2;
+	COLOR[3] = gui->color3;
+	COLOR[4] = gui->color4;
+
 	grid.clear(); CELLS.clear(); int k = 0; int indX = 0;
+
 	for (unsigned int i = 0; i < ofGetWidth(); i += gridLength) {
 		int indY = 0;
 		for (unsigned int j = 0; j < ofGetWidth(); j += gridWidth) {
@@ -47,7 +138,11 @@ void ofApp::resetGrids() {
 		}
 		indX++;
 	}
-	agent.clear();
+
+	for (unsigned int i = 0; i < agentVec.size(); i++) { 
+		agentVec[i].clear(); 
+	}
+	agentVec.clear();
 }
 
 void ofApp::setup(){
@@ -57,25 +152,12 @@ void ofApp::setup(){
 	prevW = gridWidth;
 	indX = 0;
 	indY = 0;
-	resetGrids();
+	resetSystem();
 }
 
 void ofApp::update(){
 	gridLength = gui->gridLength; gridWidth = gui->gridWidth;
-	if (prevL != gridLength || prevW != gridWidth) {
-		resetGrids();
-	}
-
-	float sum = 0;
-	string S = "...";
-	for (int i = 0; i < agent.cellsOccupied.size(); i++) {
-		Cell cell = agent.cellsOccupied[i];
-		//S += ","+to_string(cell.getArea());
-		sum += cell.getArea();
-	}
-	MSG = "Required area of cells = " + to_string(gui->agentArea);
-	MSG += "\nAchieved Area of cells = " + to_string(sum) + S;
-	
+	if (prevL != gridLength || prevW != gridWidth) { resetSystem(); }
 }
 
 void ofApp::draw(){
@@ -86,18 +168,27 @@ void ofApp::draw(){
 	for (unsigned int i = 0; i < CELLS.size(); i++) {
 		CELLS[i].draw();
 	}
-	
-	for (unsigned int i = 0; i < agent.cellsOccupied.size(); i++) {
-		agent.cellsOccupied[i].display();
-	}
 
-	ofSetColor(0); ofFill();
+	for (int i = 0; i < agentVec.size(); i++) {	
+		for (int j = 0; j < agentVec[i].cellsOccupied.size(); j++) {
+			Cell cell = agentVec[i].cellsOccupied[j];			
+			cell.display(COLOR[i]);
+			ofSetColor(0);
+			ofDrawBitmapString(i, cell.X + 25, cell.Y + cell.W / 3);
+		}
+	}
+	/*
+	for (int i = 0; i < procOccupiedCells.size(); i++) {
+		Cell cell = procOccupiedCells[i];
+		ofSetColor(0);
+		ofDrawBitmapString(i, cell.X + 5, cell.Y + cell.W / 3);
+	}
 	ofDrawBitmapStringHighlight(MSG, 10, ofGetHeight() - 50);
+	*/
 }
 
 void ofApp::keyPressed(int key){
 	if (key == 'a' || key == 'A') init();
-	if (key == 'm' || key == 'M') moveAgent();
 }
 
 void ofApp::keyReleased(int key){

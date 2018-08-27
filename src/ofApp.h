@@ -9,6 +9,8 @@
 #include "Cell.h"
 #include "Agent.h"
 
+
+
 class ofApp : public ofBaseApp 
 {
 
@@ -31,9 +33,12 @@ public:
 
 	/*	MY METHODS	*/
 	void init();
-	void moveAgent();
-	void resetGrids();
-		
+	Agent agentProc(Agent, int);
+	void resetSystem();
+	ofColor colorScheme(int);
+	void colorScheme();
+	int findAppropriateCellIndex();
+
 	/**/
 	shared_ptr<GuiApp> gui;
 
@@ -43,12 +48,15 @@ public:
 	int indX, indY;
 	string MSG="";
 
-	float agentArea;
-
 	vector<ofVec3f> grid;
 	vector<Cell> CELLS;
-	vector<Cell> occupiedCells;
+	vector<Cell> procOccupiedCells;
 
-	Agent agent;
+	const int NUM = 5;
+	float agentAreaArr[5];
+	vector<Agent> agentVec;
+
+	ofColor COLOR1, COLOR2, COLOR3, COLOR4, COLOR5;	
+	ofColor COLOR[5];
 
 };

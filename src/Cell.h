@@ -18,11 +18,13 @@ public:
 	ofVec3f cellMP();
 
 	void draw();
-	void display();
+	void display(ofColor);
 	bool contains(ofVec3f);
 
 	void setOccupied(int);
 	int getOccupied();
 	float getArea() { return (L*W); }
+
+	float di(Cell);
 };
 

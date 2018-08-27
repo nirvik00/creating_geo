@@ -12,18 +12,25 @@ void Cell::draw() {
 	ofSetColor(200, 200, 200); ofDrawRectangle(X, Y, L, W); // fill boundary
 }
 
-void Cell::display() {
-	ofSetColor(255, 0, 0, 150);
-	ofFill(); 
-	ofDrawRectangle(X, Y, L, W);	
-	ofSetColor(0); ofFill();
-	ofDrawBitmapString(cellId, X + 5, Y + W / 3);
+void Cell::display(ofColor co) {
+	/* 
+	* color comes from ofApp::draw COLOR=gui->color 
+	*/
+	ofSetColor(co); ofFill();
+	ofDrawRectangle(X, Y, L, W);
 }
 
 ofVec3f Cell::cellMP() {
 	ofVec3f p(X + (L / 2), Y + (W / 2), 0);
 	return p;
 }
+
+float Cell::di(Cell r) {
+	ofVec3f a= cellMP();
+	ofVec3f b = r.cellMP();
+	return sqrt((a.x - b.x)*(a.x - b.x) + (a.y - b.y)*(a.y - b.y) + (a.z - b.z)*(a.z - b.z));
+}
+
 
 bool Cell::contains(ofVec3f p) {
 	bool t = false;
